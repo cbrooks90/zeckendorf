@@ -24,3 +24,24 @@
   (let loop ([rep rep] [fib 1] [prev 1] [acc 0])
     (if (null? rep) acc
         (loop (cdr rep) (+ fib prev) fib (+ acc (* (car rep) fib))))))
+
+(define (addition-test n)
+  (let loop ([sum 2] [a 1] [b 1])
+    (cond [(> sum n) '()]
+          [(> a b) (loop (+ sum 1) 1 sum)]
+          [else (cons (cons
+                        (list-addition (base-fibonacci-max a)
+                                       (base-fibonacci-max b))
+                        (base-fibonacci-max sum))
+                      (loop sum (+ a 1) (- b 1)))])))
+
+(define (list-addition a b)
+  (cond [(null? a) b]
+        [(null? b) a]
+        [else (cons (+ (car a) (car b)) (list-addition (cdr a) (cdr b)))]))
+
+(let loop ([li (addition-test (fib-base->integer '(1 1 1 1 1 1 1 1)))])
+  (if (null? li) void
+      (begin
+        (printf "~a ~a\n" (caar li) (cdar li))
+        (loop (cdr li)))))
