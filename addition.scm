@@ -7,14 +7,15 @@
       (and (> a 0) (> b 0) (> c 1)))))
 
 (define (window p a b c d rest)
-  (cond ; These are basic rules like (2 1) -> (1 0 1), depending on prev. value
+  (cond ; These are basic rules like (2 1 0) -> (1 0 1), depending on prev. value
         [(reducible? p a b) (window p (- a 1) (- b 1) (+ c 1) d rest)]
         [(reducible? a b c) (window p a (- b 1) (- c 1) (+ d 1) rest)]
-        ; This catches rules like (0 0 2) -> (1 0 0 1)
+        ; This is a special rule for the beginning, where (2) -> (0 1)
+        [(and (not p) (> a 1) (= b 0)) (window p (- a 2) (+ b 1) c d rest)]
+        [(and (not p) (= a 0) (> b 1)) (window p (+ a 2) (- b 1) c d rest)]
+        ; This catches rules like (0 0 2 0) -> (1 0 0 1)
         [(and (> c 1) (> c d) (or (= a 0) (not p)))
          (window p (+ a 1) b (- c 2) (+ d 1) rest)]
-        ; This is a special rule for the beginning, where (2) -> (0 1)
-        [(and (not p) (> a 1)) (window p (- a 2) (+ b 1) c d rest)]
         ; Control flow
         [(= 0 (+ a b c d)) '()]
         [(null? rest) (cons a (window a b c d 0 '()))]
@@ -30,7 +31,8 @@
 ;(reduce '(1 1 1 0 1 1 2 2 2 0 1 1 1 1 1 1))
 ;(reduce '(2 2 2 2 2 2 2 2 2 2 2 2))
 ;(reduce '(2 0 2 0 2 0 2))
-;(reduce '(2 1 2 2 0 2 1 2)) <-There is a problem with a rule here
+;(reduce '(2 1 2 2 0 2 1 2)); <-There is a problem with a rule here
 ;(reduce '(2 1 2 1 2 1 2 1 2))
 ;(reduce '(2 2 1 2 1 1 2))
 ;(reduce '(2 1 2 1 2 2 2 1 2 2 2))
+;(reduce '(2 0 2 1))
