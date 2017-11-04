@@ -3,30 +3,43 @@
 ; In other words, a positive integer can be written as a list of 1's and 0's
 ; where the ith entry means that Fibonacci number is included; this list is
 ; unique if we require that the list does not contain two zeros in succession.
-; We refer to this representation as the maximal Zeckendorf representation.
+; We refer to this representation as the lazy Fibonacci representation.
 ;
 ; Examples:
-;   * (fib-rep 6) -> '(1 1 1) since 6 = 1 + 2 + 3. Does not return '(1 0 0 1)
+;   * (lazy-rep 6) -> '(1 1 1) since 6 = 1 + 2 + 3. Does not return '(1 0 0 1)
 ;     since even though 6 = 1 + 5, this excludes two successive fibonaccis.
-;   * (fib-rep 18) -> '(0 1 1 1 1) since 18 = 2 + 3 + 5 + 8.
+;   * (lazy-rep 18) -> '(0 1 1 1 1) since 18 = 2 + 3 + 5 + 8.
 ;     While 18 can be represented as '(0 0 0 1 0 1) or '(0 1 1 0 0 1), these
 ;     representations include successive zeros
 
-; Finds two values: The highest Fibonacci number present in the maximal
-; Zeckendorf representation of 'n', and the next Fibonacci number.
+; Finds two values: The highest Fibonacci number present in the lazy
+; Fibonacci representation of 'n', and the next Fibonacci number.
 (define (fib-bounds n)
   (let loop ([fib 1] [prev 1] [pprev 0])
     (if (< (+ n 1) fib)
         (values pprev prev)
         (loop (+ fib prev) fib prev))))
 
-; Find the maximal Zeckendorf representation of 'n'
-(define (fib-rep n)
-  (let-values ([(prev fib) (fib-bounds n)])
+(define (fib-floor n)
+  (let loop ([fib 1] [prev 0])
+    (if (> fib n) (values prev (- fib prev))
+        (loop (+ fib prev) fib))))
+
+; Find the lazy Fibonacci representation of 'n'
+(define (lazy-rep n)
+  (let-values ([(fib prev) (fib-bounds n)])
     (let loop ([n n] [fib fib] [prev prev] [acc '()])
       (cond [(= fib 1) acc]
             [(< (+ n 1) fib) (loop n prev (- fib prev) (cons 0 acc))]
             [else (loop (- n prev) prev (- fib prev) (cons 1 acc))]))))
+
+; Find the greedy (Zeckendorf) Fibonacci representation of 'n'
+(define (greedy-rep n)
+  (let-values ([(fib prev) (fib-floor n)])
+    (let loop ([n n] [fib fib] [prev prev] [acc '()])
+      (cond [(= prev 0) acc]
+            [(> fib n) (loop n prev (- fib prev) (cons 0 acc))]
+            [else (loop (- n fib) prev (- fib prev) (cons 1 acc))]))))
 
 ; Given a list of integers a_i, 0 <= i <= n, find \sum_{i=0}^n a_i*F_{i+2}
 (define (un-fib-rep rep)
@@ -44,6 +57,8 @@
                              (loop n (+ fib prev) fib 0))
                         (loop (- n fib) fib prev (+ count 1)))])))
 
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Helper functions for testing        ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -59,8 +74,10 @@
                   (map (lambda (x) (cons 1 x)) accum)
                   (map (lambda (x) (cons 2 x)) accum)))))))
 
-(define (normalize rep)
-  (fib-rep (un-fib-rep rep)))
+(define rep greedy-rep)
+
+(define (normalize li)
+  (rep (un-fib-rep li)))
 
 (define (list-addition a b)
   (cond [(null? a) b]
@@ -71,17 +88,10 @@
   (let loop ([sum 2] [a 1] [b 1])
     (cond [(> sum n) '()]
           [(> a b) (loop (+ sum 1) 1 sum)]
-          [else (cons (list-addition (fib-rep a) (fib-rep b))
+          [else (cons (list-addition (rep a) (rep b))
                       (loop sum (+ a 1) (- b 1)))])))
 
-(define (twos-test n)
-  (let loop ([i 0] [li '(2)])
-    (let ([val (un-fib-rep li)])
-      (if (> i n) '()
-          (cons (cons li (fib-rep val))
-                (loop (+ i 1) (cons 2 li)))))))
-
  (define (truncate n)
-   (let loop ([li (fib-rep n)])
+   (let loop ([li (rep n)])
      (if (null? li) '()
          (cons (un-fib-rep li) (loop (cdr li))))))
