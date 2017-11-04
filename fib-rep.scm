@@ -37,7 +37,7 @@
 (define (greedy-rep n)
   (let-values ([(fib prev) (fib-floor n)])
     (let loop ([n n] [fib fib] [prev prev] [acc '()])
-      (cond [(= prev 0) acc]
+      (cond [(or (= fib 0) (= prev 0)) acc]
             [(> fib n) (loop n prev (- fib prev) (cons 0 acc))]
             [else (loop (- n fib) prev (- fib prev) (cons 1 acc))]))))
 
@@ -63,16 +63,18 @@
 ; Helper functions for testing        ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (all-fibonaccis max-len)
-  (let loop ([len 2] [accum '((1) (2))])
-    (if (> len max-len) accum
-        (append
-          accum
-          (loop (+ len 1)
-                (append
-                  (map (lambda (x) (cons 0 x)) (filter (lambda (x) (not (= (car x) 0))) accum))
-                  (map (lambda (x) (cons 1 x)) accum)
-                  (map (lambda (x) (cons 2 x)) accum)))))))
+(define (all-min-fibonaccis max-len)
+  (cons
+    '()
+    (let loop ([len 2] [accum '((1) (2))])
+      (append
+        accum
+        (if (> len max-len) '()
+            (loop (+ len 1)
+                  (append
+                    (map (lambda (x) (cons 0 x)) accum)
+                    (map (lambda (x) (cons 1 x)) (filter (lambda (x) (< (car x) 2)) accum))
+                    (map (lambda (x) (cons 2 x)) (filter (lambda (x) (= (car x) 0)) accum)))))))))
 
 (define rep greedy-rep)
 
@@ -85,13 +87,13 @@
         [else (cons (+ (car a) (car b)) (list-addition (cdr a) (cdr b)))]))
 
 (define (all-sums n)
-  (let loop ([sum 2] [a 1] [b 1])
+  (let loop ([sum 0] [a 0] [b 0])
     (cond [(> sum n) '()]
-          [(> a b) (loop (+ sum 1) 1 sum)]
+          [(> a b) (loop (+ sum 1) 0 (+ sum 1))]
           [else (cons (list-addition (rep a) (rep b))
                       (loop sum (+ a 1) (- b 1)))])))
 
- (define (truncate n)
-   (let loop ([li (rep n)])
-     (if (null? li) '()
-         (cons (un-fib-rep li) (loop (cdr li))))))
+(define (truncate n)
+  (let loop ([li (rep n)])
+    (if (null? li) '()
+        (cons (un-fib-rep li) (loop (cdr li))))))
