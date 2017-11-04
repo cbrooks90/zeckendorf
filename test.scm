@@ -5,7 +5,7 @@
   (if (equal? (reduce x) (normalize x))
       #t
       (begin
-        (printf "~a -> ~a, should be ~a\n" x (reduce-min x) (normalize x))
+        (printf "~a -> ~a, should be ~a\n" x (reduce x) (normalize x))
         #f)))
 
 (define (test-up-to n)
