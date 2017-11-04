@@ -39,9 +39,3 @@
         [(null? (cddr li)) (start (car li) (cadr li) 0 0 '())]
         [(null? (cdddr li)) (start (car li) (cadr li) (caddr li) 0 '())]
         [else (start (car li) (cadr li) (caddr li) (cadddr li) (cddddr li))]))
-
-
-
-
-
-
