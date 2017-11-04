@@ -1,38 +1,47 @@
-(load "fib-rep.scm")
+(define (end a b c d rest)
+  (cond [(= b 2) (append (list 1 0 0 1) rest)]
+        [(= c 2) (append (list 1 0 1 0) rest)]
+        [(= d 2) (append (list 0 1 0 a) rest)]
+        [else (append (list d c b a) rest)]))
 
-(define (reducible? a b c)
-  (let ([a (or a 1)])
-    (or
-      (and (> b 1) (> c 0))
-      (and (> a 0) (> b 0) (> c 1)))))
+(define (wodniw a b c d rest acc)
+  (cond [(and (> b 0) (> c 0)) (wodniw (+ a 1) (- b 1) (- c 1) d rest acc)]
+        [(and (> c 0) (> d 0)) (wodniw a (+ b 1) (- c 1) (- d 1) rest acc)]
+        [(and (> b 1) (= a 0)) (wodniw (+ a 1) (- b 2) c (+ d 1) rest acc)]
 
-(define (window p a b c d rest)
-  (cond ; These are basic rules like (2 1 0) -> (1 0 1), depending on prev. value
-        [(reducible? p a b) (window p (- a 1) (- b 1) (+ c 1) d rest)]
-        [(reducible? a b c) (window p a (- b 1) (- c 1) (+ d 1) rest)]
-        ; This is a special rule for the beginning, where (2) -> (0 1)
-        [(and (not p) (> a 1) (= b 0)) (window p (- a 2) (+ b 1) c d rest)]
-        [(and (not p) (= a 0) (> b 1)) (window p (+ a 2) (- b 1) c d rest)]
-        ; This catches rules like (0 0 2 0) -> (1 0 0 1)
-        [(and (> c 1) (> c d) (or (= a 0) (not p)))
-         (window p (+ a 1) b (- c 2) (+ d 1) rest)]
-        ; Control flow
-        [(= 0 (+ a b c d)) '()]
-        [(null? rest) (cons a (window a b c d 0 '()))]
-        [else (cons a (window a b c d (car rest) (cdr rest)))]))
+        [(null? rest) (end a b c d acc)]
+        [else (wodniw b c d (car rest) (cdr rest) (cons a acc))]))
+
+(define (ecuder li)
+  (cond [(or (null? li)
+             (null? (cdr li))
+             (null? (cddr li))
+             (null? (cdddr li))) (reverse li)]
+        [else (wodniw (car li) (cadr li) (caddr li) (cadddr li) (cddddr li) '())]))
+
+(define (window a b c d rest acc)
+  (cond [(and (> a 0) (> b 0)) (window (- a 1) (- b 1) (+ c 1) d rest acc)]
+        [(and (> b 0) (> c 0)) (window a (- b 1) (- c 1) (+ d 1) rest acc)]
+        [(and (> c 1) (= d 0)) (window (+ a 1) b (- c 2) (+ d 1) rest acc)]
+
+        [(and (null? rest) (= 0 (+ a b c d))) (ecuder acc)]
+        [(null? rest) (window b c d 0 '() (cons a acc))]
+        [else (window b c d (car rest) (cdr rest) (cons a acc))]))
+
+(define (start a b c d rest)
+  (cond [(and (= a 2) (= b 0)) (window 0 1 c d rest '())]
+        [(and (= a 0) (= b 2) (= c 0)) (window 1 0 1 d rest '())]
+        [else (window a b c d rest '())]))
 
 (define (reduce li)
   (cond [(null? li) '()]
-        [(null? (cdr li)) (window #f (car li) 0 0 0 '())]
-        [(null? (cddr li)) (window #f (car li) (cadr li) 0 0 '())]
-        [(null? (cdddr li)) (window #f (car li) (cadr li) (caddr li) 0 '())]
-        [else (window #f (car li) (cadr li) (caddr li) (cadddr li) (cddddr li))]))
+        [(null? (cdr li)) (start (car li) 0 0 0 '())]
+        [(null? (cddr li)) (start (car li) (cadr li) 0 0 '())]
+        [(null? (cdddr li)) (start (car li) (cadr li) (caddr li) 0 '())]
+        [else (start (car li) (cadr li) (caddr li) (cadddr li) (cddddr li))]))
 
-;(reduce '(1 1 1 0 1 1 2 2 2 0 1 1 1 1 1 1))
-;(reduce '(2 2 2 2 2 2 2 2 2 2 2 2))
-;(reduce '(2 0 2 0 2 0 2))
-;(reduce '(2 1 2 2 0 2 1 2)); <-There is a problem with a rule here
-;(reduce '(2 1 2 1 2 1 2 1 2))
-;(reduce '(2 2 1 2 1 1 2))
-;(reduce '(2 1 2 1 2 2 2 1 2 2 2))
-;(reduce '(2 0 2 1))
+
+
+
+
+
