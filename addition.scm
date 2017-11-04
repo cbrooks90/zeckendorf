@@ -5,10 +5,8 @@
         [else (append (list d c b a) rest)]))
 
 (define (wodniw a b c d rest acc)
-  (cond [(and (> b 0) (> c 0)) (wodniw (+ a 1) (- b 1) (- c 1) d rest acc)]
-        [(and (> c 0) (> d 0)) (wodniw a (+ b 1) (- c 1) (- d 1) rest acc)]
+  (cond [(and (> c 0) (> d 0)) (wodniw a (+ b 1) (- c 1) (- d 1) rest acc)]
         [(and (> b 1) (= a 0)) (wodniw (+ a 1) (- b 2) c (+ d 1) rest acc)]
-
         [(null? rest) (end a b c d acc)]
         [else (wodniw b c d (car rest) (cdr rest) (cons a acc))]))
 
@@ -21,9 +19,7 @@
 
 (define (window a b c d rest acc)
   (cond [(and (> a 0) (> b 0)) (window (- a 1) (- b 1) (+ c 1) d rest acc)]
-        [(and (> b 0) (> c 0)) (window a (- b 1) (- c 1) (+ d 1) rest acc)]
         [(and (> c 1) (= d 0)) (window (+ a 1) b (- c 2) (+ d 1) rest acc)]
-
         [(and (null? rest) (= 0 (+ a b c d))) (ecuder acc)]
         [(null? rest) (window b c d 0 '() (cons a acc))]
         [else (window b c d (car rest) (cdr rest) (cons a acc))]))
