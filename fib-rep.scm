@@ -20,8 +20,9 @@
 (define (bdd-fib-reps n max)
   (let loop ([n n] [fib 1] [prev 1] [count 0])
     (cond [(> count max) '()]
-          [(and (= n 0) (> (+ fib count) 1)) `((,count))]
-          [(or (<= n 0) (> fib n)) '()]
+          [(and (= n 0) (= count 0)) '(())]
+          [(= n 0) `((,count))]
+          [(or (< n 0) (> fib n)) '()]
           [else (append (map (lambda (x) (cons count x))
                              (loop n (+ fib prev) fib 0))
                         (loop (- n fib) fib prev (+ count 1)))])))
