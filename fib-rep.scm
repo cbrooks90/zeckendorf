@@ -1,45 +1,14 @@
-; Every positive integer can be written uniquely as a sum of distinct positive
-; Fibonacci numbers such that no two successive Fibonacci numbers are excluded.
-; In other words, a positive integer can be written as a list of 1's and 0's
-; where the ith entry means that Fibonacci number is included; this list is
-; unique if we require that the list does not contain two zeros in succession.
-; We refer to this representation as the lazy Fibonacci representation.
+; These functions concern the representation of integers as sums of Fibonacci
+; numbers. If the ith entry is a_i, we add a_i * F_{i+2}. The i+2 is so that our
+; 'basis' is distinct positive Fibonacci numbers, i.e. 1, 2, 3, 5, 8, ...
+; Some examples:
+;   '(1 0 0 2 0 3) -> 1*1 + 2*5 + 3*13 = 50
+;   '(0 0 4 5 0 1 3) -> 4*3 + 5*5 + 1*13 + 3*21 = 113
 ;
-; Examples:
-;   * (lazy-rep 6) -> '(1 1 1) since 6 = 1 + 2 + 3. Does not return '(1 0 0 1)
-;     since even though 6 = 1 + 5, this excludes two successive fibonaccis.
-;   * (lazy-rep 18) -> '(0 1 1 1 1) since 18 = 2 + 3 + 5 + 8.
-;     While 18 can be represented as '(0 0 0 1 0 1) or '(0 1 1 0 0 1), these
-;     representations include successive zeros
-
-; Finds two values: The highest Fibonacci number present in the lazy
-; Fibonacci representation of 'n', and the next Fibonacci number.
-(define (fib-bounds n)
-  (let loop ([fib 1] [prev 1] [pprev 0])
-    (if (< (+ n 1) fib)
-        (values pprev prev)
-        (loop (+ fib prev) fib prev))))
-
-(define (fib-floor n)
-  (let loop ([fib 1] [prev 0])
-    (if (> fib n) (values prev (- fib prev))
-        (loop (+ fib prev) fib))))
-
-; Find the lazy Fibonacci representation of 'n'
-(define (lazy-rep n)
-  (let-values ([(fib prev) (fib-bounds n)])
-    (let loop ([n n] [fib fib] [prev prev] [acc '()])
-      (cond [(= fib 1) acc]
-            [(< (+ n 1) fib) (loop n prev (- fib prev) (cons 0 acc))]
-            [else (loop (- n prev) prev (- fib prev) (cons 1 acc))]))))
-
-; Find the greedy (Zeckendorf) Fibonacci representation of 'n'
-(define (greedy-rep n)
-  (let-values ([(fib prev) (fib-floor n)])
-    (let loop ([n n] [fib fib] [prev prev] [acc '()])
-      (cond [(or (= fib 0) (= prev 0)) acc]
-            [(> fib n) (loop n prev (- fib prev) (cons 0 acc))]
-            [else (loop (- n fib) prev (- fib prev) (cons 1 acc))]))))
+; The function 'un-fib-rep' converts the list representation to an integer, and
+; 'fib-reps' computes all list representations from a given integer. In this
+; file, there is no support for negative integer arguments, even if some
+; functions magically work correctly with them.
 
 ; Given a list of integers a_i, 0 <= i <= n, find \sum_{i=0}^n a_i*F_{i+2}
 (define (un-fib-rep rep)
@@ -57,7 +26,52 @@
                              (loop n (+ fib prev) fib 0))
                         (loop (- n fib) fib prev (+ count 1)))])))
 
+; A representation of an integer as a sum of Fibonacci numbers is not unique.
+; If we require that the list contains only 0 and 1 and a_i * a_i+1 = 0 for all
+; i, then the representation is unique. This 'greedy' Fibonacci representation
+; is sometimes referred to as the Zeckendorf representation.
+;
+; Examples:
+;   * (greedy-rep 7) -> '(0 1 0 1) since 7 = 2 + 5. Does not return '(0 1 1 0)
+;     since even though 7 = 3 + 4, this includes two successive Fibonaccis.
+;   * (greedy-rep 18) -> '(0 0 0 1 0 1) since 18 = 5 + 13.
+;     While 18 can be represented as '(0 1 1 1 1) or '(0 1 1 0 0 1), these
+;     representations include successive zeros
 
+; Find the largest Fibonacci number less than or equal to 'n'
+(define (fib-floor n)
+  (let loop ([fib 1] [prev 0])
+    (if (> fib n) (values prev (- fib prev))
+        (loop (+ fib prev) fib))))
+
+
+; Find the greedy (Zeckendorf) Fibonacci representation of 'n'
+(define (greedy-rep n)
+  (let-values ([(fib prev) (fib-floor n)])
+    (let loop ([n n] [fib fib] [prev prev] [acc '()])
+      (cond [(or (= fib 0) (= prev 0)) acc]
+            [(> fib n) (loop n prev (- fib prev) (cons 0 acc))]
+            [else (loop (- n fib) prev (- fib prev) (cons 1 acc))]))))
+
+; There is a similar representation which instead requires that no two
+; successive Fibonacci numbers are excluded; i.e. the list has no two 0's in
+; succession. This will be referred to as the 'lazy' Fibonacci representation.
+
+; Finds two values: The highest Fibonacci number present in the lazy
+; Fibonacci representation of 'n', and the next Fibonacci number.
+(define (fib-bounds n)
+  (let loop ([fib 1] [prev 1] [pprev 0])
+    (if (< (+ n 1) fib)
+        (values pprev prev)
+        (loop (+ fib prev) fib prev))))
+
+; Find the lazy Fibonacci representation of 'n'
+(define (lazy-rep n)
+  (let-values ([(fib prev) (fib-bounds n)])
+    (let loop ([n n] [fib fib] [prev prev] [acc '()])
+      (cond [(= fib 1) acc]
+            [(< (+ n 1) fib) (loop n prev (- fib prev) (cons 0 acc))]
+            [else (loop (- n prev) prev (- fib prev) (cons 1 acc))]))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Helper functions for testing        ;
