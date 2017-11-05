@@ -17,14 +17,20 @@
         (loop (cdr rep) (+ fib prev) fib (+ acc (* (car rep) fib))))))
 
 ; All fibonacci representations where no digit is bigger than 'max'
-(define (fib-rep* n max)
+(define (bdd-fib-reps n max)
   (let loop ([n n] [fib 1] [prev 1] [count 0])
     (cond [(> count max) '()]
-          [(= n 0) `((,count))]
-          [(or (< n 0) (> fib n)) '()]
+          [(and (= n 0) (> (+ fib count) 1)) `((,count))]
+          [(or (<= n 0) (> fib n)) '()]
           [else (append (map (lambda (x) (cons count x))
                              (loop n (+ fib prev) fib 0))
                         (loop (- n fib) fib prev (+ count 1)))])))
+
+; Same as above but 'max' argument is optional
+(define fib-reps
+  (case-lambda
+    [(n) (bdd-fib-reps n +inf.0)]
+    [(n max) (bdd-fib-reps n max)]))
 
 ; A representation of an integer as a sum of Fibonacci numbers is not unique.
 ; If we require that the list contains only 0 and 1 and a_i * a_i+1 = 0 for all
