@@ -41,5 +41,3 @@
          [c (and b (not (null? (cddr li))) (caddr li))]
          [rest (if c (cdddr li) '())])
     (start a b c rest)))
-
-(reduce '(1 0 1 -1 1))
