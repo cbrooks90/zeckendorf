@@ -74,7 +74,7 @@
 
 ; Find the lazy Fibonacci representation of 'n'
 (define (lazy-rep n)
-  (let-values ([(fib prev) (fib-bounds n)])
+  (let-values ([(prev fib) (fib-bounds n)])
     (let loop ([n n] [fib fib] [prev prev] [acc '()])
       (cond [(= fib 1) acc]
             [(< (+ n 1) fib) (loop n prev (- fib prev) (cons 0 acc))]
