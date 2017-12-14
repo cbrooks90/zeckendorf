@@ -60,6 +60,14 @@
             [(> fib n) (loop n prev (- fib prev) (cons 0 acc))]
             [else (loop (- n fib) prev (- fib prev) (cons 1 acc))]))))
 
+; List the integers appearing in the Zeckendorf representation
+(define (greedy-rep-ints n)
+  (let-values ([(fib prev) (fib-floor n)])
+    (let loop ([n n] [fib fib] [prev prev] [acc '()])
+      (cond [(or (= fib 0) (= prev 0)) acc]
+            [(> fib n) (loop n prev (- fib prev) acc)]
+            [else (loop (- n fib) prev (- fib prev) (cons fib acc))]))))
+
 ; There is a similar representation which instead requires that no two
 ; successive Fibonacci numbers are excluded; i.e. the list has no two 0's in
 ; succession. This will be referred to as the 'lazy' Fibonacci representation.
