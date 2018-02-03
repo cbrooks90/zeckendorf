@@ -39,11 +39,11 @@
 ; is sometimes referred to as the Zeckendorf representation.
 ;
 ; Examples:
-;   * (greedy-rep 7) -> '(0 1 0 1) since 7 = 2 + 5. Does not return '(0 1 1 0)
+;   * (rep 7) -> '(0 1 0 1) since 7 = 2 + 5. Does not return '(0 1 1 0)
 ;     since even though 7 = 3 + 4, this includes two successive Fibonaccis.
-;   * (greedy-rep 18) -> '(0 0 0 1 0 1) since 18 = 5 + 13.
+;   * (rep 18) -> '(0 0 0 1 0 1) since 18 = 5 + 13.
 ;     While 18 can be represented as '(0 1 1 1 1) or '(0 1 1 0 0 1), these
-;     representations include successive zeros
+;     representations include successive ones
 
 ; Find the largest Fibonacci number less than or equal to 'n'
 (define (fib-floor n)
@@ -53,7 +53,7 @@
 
 
 ; Find the greedy (Zeckendorf) Fibonacci representation of 'n'
-(define (greedy-rep n)
+(define (rep n)
   (let-values ([(fib prev) (fib-floor n)])
     (let loop ([n n] [fib fib] [prev prev] [acc '()])
       (cond [(or (= fib 0) (= prev 0)) acc]
@@ -61,7 +61,7 @@
             [else (loop (- n fib) prev (- fib prev) (cons 1 acc))]))))
 
 ; List the integers appearing in the Zeckendorf representation
-(define (greedy-rep-ints n)
+(define (rep-ints n)
   (let-values ([(fib prev) (fib-floor n)])
     (let loop ([n n] [fib fib] [prev prev] [acc '()])
       (cond [(or (= fib 0) (= prev 0)) acc]
@@ -105,24 +105,17 @@
                     (map (lambda (x) (cons 1 x)) (filter (lambda (x) (< (car x) 2)) accum))
                     (map (lambda (x) (cons 2 x)) (filter (lambda (x) (= (car x) 0)) accum)))))))))
 
-(define rep greedy-rep)
-
 (define (normalize li)
   (rep (un-fib-rep li)))
 
-(define (list-addition a b)
+(define (list-add a b)
   (cond [(null? a) b]
         [(null? b) a]
-        [else (cons (+ (car a) (car b)) (list-addition (cdr a) (cdr b)))]))
+        [else (cons (+ (car a) (car b)) (list-add (cdr a) (cdr b)))]))
 
 (define (all-sums n)
   (let loop ([sum 0] [a 0] [b 0])
     (cond [(> sum n) '()]
           [(> a b) (loop (+ sum 1) 0 (+ sum 1))]
-          [else (cons (list-addition (rep a) (rep b))
+          [else (cons (list-add (rep a) (rep b))
                       (loop sum (+ a 1) (- b 1)))])))
-
-(define (truncate n)
-  (let loop ([li (rep n)])
-    (if (null? li) '()
-        (cons (un-fib-rep li) (loop (cdr li))))))
