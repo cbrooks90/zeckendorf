@@ -1,13 +1,13 @@
 ; Subtraction of Zeckendorf representations is completely analogous to addition;
 ; we make two passes of a sliding window, starting with LSB, performing at most
-; one reduction at each step. Since we're subtracting, there are no 2s and
-; instead we have to propagate -1's forward. As a result, in the forward
-; direction the window has size 5 and the reduction rules are different.
+; one reduction at each step.
 
-; The forward reduction rules are derived from 0 0 1 -> 1 1 0; this leads to
-; rules like -1 0 1 -> 0 1 0. The exact implementation is subtle as you can see
-; in the definition of "f-win" and at some point I will add exposition to each
-; step.
+; Since we're subtracting, there are no 2s and instead we have to propagate -1s
+; forward. To accomodate this, in the forward direction the window has size 5
+; and the reduction rules are more specific, although they can be derived from
+; 1 1 0 = 0 0 1
+; 0 0 2 0 = 1 0 0 1.
+; See the comments on the definition of "f-win" below.
 
 (define (b-mov a b c d rest acc start?)
   (cond [(and (null? rest) (null? acc))
@@ -27,11 +27,17 @@
       (f-win b c d e (car rest) (cdr rest) (cons a acc))))
 
 (define (f-win a b c d e rest acc)
-  (cond [(= c -1) (f-mov a b 0 0 (- e 1) rest acc)]
+  (cond ; Most of the time we can deal with a -1 before it gets to c. The only
+        ; time we let a -1 get to c is when there are two -1s in a row:
+        ; a b -1 -1 e -> a b 0 0 e-1
+        [(= c -1) (f-mov a b 0 0 (- e 1) rest acc)]
+        ; When a single -1 comes into the window (at d), we can propagate it
+        ; forward depending on b and c (which cannot both be 1, otherwise we
+        ; subtracted from an invalid list).
         [(and (= d -1) (> e -1))
-         (cond [(= b 1) (f-mov    a    0 0 1 (- e 1) rest acc)]
-               [(= c 1) (f-mov (+ a 1) 0 0 1 (- e 1) rest acc)]
-               [else    (f-mov    a    0 1 0 (- e 1) rest acc)])]
+         (cond [(= b 1) (f-mov    a    0 0 1 (- e 1) rest acc)]; a 1 0 -1 e
+               [(= c 1) (f-mov (+ a 1) 0 0 1 (- e 1) rest acc)]; a 0 1 -1 e
+               [else    (f-mov    a    0 1 0 (- e 1) rest acc)])]; a 0 0 -1 e
         [else (f-mov a b c d e rest acc)]))
 
 (define (start a b c d e rest)
