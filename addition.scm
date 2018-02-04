@@ -4,16 +4,24 @@
 
 ; The method is to scan the list twice with a sliding window of size 4---once
 ; moving forward and then going backward. By forward we mean LSB->MSB and vice
-; versa. This is for convenience with processing lists in Scheme.
+; versa. This is for convenience with how lists are processed in Scheme.
 
 ; Every time the window slides by one unit, at most one reduction can be made,
 ; essentially propagating carries from the original sum. The backward pass is to
 ; correct for a possible violation in the Zeckendorf invariants which cannot be
 ; known until we make a full forward pass.
 
-; Both passes essentially rely on the reductions (remember LSB is on the left)
+; Both passes are based on the reductions (remember LSB is on the left)
 ;   1 1 0 -> 0 0 1
 ; 0 0 2 0 -> 1 0 0 1
+
+; To see why the backward pass is necessary in general, consider these sums:
+;   '(1 1 1 1 1) -> '(1 0 0 1 0 1)
+; '(1 1 1 1 1 1) -> '(0 0 1 0 1 0 1)
+; It seems like it's impossible to determine even the ones digit of the reduced
+; form without knowing (in these examples) how many ones are in the unreduced
+; input. If we start with the MSB, we still have to scan the inputs to align the
+; MSBs.
 
 (define (b-mov a b c d rest acc start?)
   (cond [(and (null? rest) (null? acc)) (if (zero? (+ a b)) '() (list (+ a b)))]
