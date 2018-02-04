@@ -5,12 +5,12 @@
 ; Since we're subtracting, there are no 2s and instead we have to propagate -1s
 ; forward. To accomodate this, in the forward direction the window has size 5
 ; and the reduction rules are more specific, although they can be derived from
-; 1 1 0 = 0 0 1
+;   1 1 0 = 0 0 1
 ; 0 0 2 0 = 1 0 0 1.
 ; See the comments on the definition of "f-win" below.
 
 (define (b-mov a b c d rest acc start?)
-  (cond [(and (null? rest) (null? acc)) (list (+ a b))]
+  (cond [(and (null? rest) (null? acc)) (if (zero? (+ a b)) '() (list (+ a b)))]
         [(null? rest) (cons (+ a b) acc)]
         [(and start? (= a 0)) (b-win b c d (car rest) (cdr rest) acc #t)]
         [else (b-win b c d (car rest) (cdr rest) (cons a acc) #f)]))
