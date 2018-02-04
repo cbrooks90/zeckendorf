@@ -1,3 +1,20 @@
+; If we have two numbers in the Zeckendorf representation, we can add them digit
+; by digit. The procedure "reduce" takes a list representing such a sum and
+; produces the Zeckendorf representation for the sum.
+
+; The method is to scan the list twice with a sliding window of size 4---once
+; moving forward and then going backward. By forward we mean LSB->MSB and vice
+; versa. This is for convenience with processing lists in Scheme.
+
+; Every time the window slides by one unit, at most one reduction can be made,
+; essentially propagating carries from the original sum. The backward pass is to
+; correct for a possible violation in the Zeckendorf invariants which cannot be
+; known until we make a full forward pass.
+
+; Both passes essentially rely on the reductions (remember LSB is on the left)
+;   1 1 0 -> 0 0 1
+; 0 0 2 0 -> 1 0 0 1
+
 (define (b-mov a b c d rest acc start?)
   (cond [(and (null? rest) (null? acc))
          (append (if (= 0 (+ a b c)) '() (list (+ b c)))

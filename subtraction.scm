@@ -1,3 +1,14 @@
+; Subtraction of Zeckendorf representations is completely analogous to addition;
+; we make two passes of a sliding window, starting with LSB, performing at most
+; one reduction at each step. Since we're subtracting, there are no 2s and
+; instead we have to propagate -1's forward. As a result, in the forward
+; direction the window has size 5 and the reduction rules are different.
+
+; The forward reduction rules are derived from 0 0 1 -> 1 1 0; this leads to
+; rules like -1 0 1 -> 0 1 0. The exact implementation is subtle as you can see
+; in the definition of "f-win" and at some point I will add exposition to each
+; step.
+
 (define (b-mov a b c d rest acc start?)
   (cond [(and (null? rest) (null? acc))
          (append (if (= 0 (+ a b c)) '() (list (+ b c)))
