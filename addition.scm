@@ -16,10 +16,8 @@
 ; 0 0 2 0 -> 1 0 0 1
 
 (define (b-mov a b c d rest acc start?)
-  (cond [(and (null? rest) (null? acc))
-         (append (if (= 0 (+ a b c)) '() (list (+ b c)))
-                 (if (= 0 a) '() (list a)))]
-        [(null? rest) (append (list (+ b c) a) acc)]
+  (cond [(and (null? rest) (null? acc)) (if (zero? (+ a b)) '() (list (+ a b)))]
+        [(null? rest) (cons (+ a b) acc)]
         [start? (b-win b c d (car rest) (cdr rest) acc #f)]
         [else (b-win b c d (car rest) (cdr rest) (cons a acc) #f)]))
 
@@ -39,6 +37,5 @@
         [else (f-mov a b c d rest acc)]))
 
 (define (reduce li)
-  (cond [(null? li) '()]
-        [(null? (cdr li)) (f-win 0 0 (car li) 0 '() '())]
-        [else (f-win 0 0 (car li) (cadr li) (cddr li) '())]))
+  (if (null? li) '()
+      (f-mov 0 0 0 (car li) (cdr li) '())))
